@@ -47,8 +47,11 @@ Note:
             35:'end', 33: 'pageup', 34:'pagedown', 37:'left', 38:'up', 39:'right',40:'down', 
             109: '-', 
             112:'f1',113:'f2', 114:'f3', 115:'f4', 116:'f5', 117:'f6', 118:'f7', 119:'f8', 
-            120:'f9', 121:'f10', 122:'f11', 123:'f12', 191: '/'},
-        
+            120:'f9', 121:'f10', 122:'f11', 123:'f12', 191: '/',
+ 			18: 'alt', 17: 'ctrl', 16: 'shift' },
+
+        modifKeys: { 18: 'alt', 17: 'ctrl', 16: 'shift' },
+
         shiftNums: { "`":"~", "1":"!", "2":"@", "3":"#", "4":"$", "5":"%", "6":"^", "7":"&", 
             "8":"*", "9":"(", "0":")", "-":"_", "=":"+", ";":":", "'":"\"", ",":"<", 
             ".":">",  "/":"?",  "\\":"|" },
@@ -96,6 +99,7 @@ Note:
     jQuery.fn.bind = function(type, data, fn){
         // grab keyup,keydown,keypress
         var handle = type.match(hotkeys.override);
+
         
         if (jQuery.isFunction(data) || !handle){
             // call jQuery.bind only
@@ -106,7 +110,7 @@ Note:
             var result = null,            
             // pass the rest to the original $.fn.bind
             pass2jq = jQuery.trim(type.replace(hotkeys.override, ''));
-            
+
             // see if there are other types, pass them to the original $.fn.bind
             if (pass2jq){
                 result = this.__bind__(pass2jq, data, fn);
@@ -205,26 +209,36 @@ Note:
             if (mapPoint){ 
                 var trigger;
                 // event type is associated with the hkId
+				
+				// Check if the key is a special key (including modifier keys)
                 if(!shift && !ctrl && !alt) { // No Modifiers
                     trigger = mapPoint[special] ||  (character && mapPoint[character]);
                 }
                 else{
                     // check combinations (alt|ctrl|shift+anything)
                     var modif = '';
-                    if(alt) modif +='alt+';
-                    if(ctrl) modif+= 'ctrl+';
-                    if(shift) modif += 'shift+';
+                    if(alt) modif +='alt';
+                    if(ctrl) modif+= 'ctrl';
+                    if(shift) modif += 'shift';
                     // modifiers + special keys or modifiers + character or modifiers + shift character or just shift character
-                    trigger = mapPoint[modif+special];
-                    if (!trigger){
+					
+					// Check if the key is a special key (including modifier keys)
+					tmp = mapPoint[modif];
+					
+					trigger = mapPoint[modif+"+"+special];
+					if (!trigger){
                         if (character){
-                            trigger = mapPoint[modif+character] 
-                                || mapPoint[modif+hotkeys.shiftNums[character]]
+                            trigger = mapPoint[modif+"+"+character] 
+                                || mapPoint[modif+"+"+hotkeys.shiftNums[character]]
                                 // '$' can be triggered as 'Shift+4' or 'Shift+$' or just '$'
-                                || (modif === 'shift+' && mapPoint[hotkeys.shiftNums[character]]);
+                                || (modif === 'shift' && mapPoint[hotkeys.shiftNums[character]]);
                         }
                     }
-                }
+					if (!trigger){
+						trigger = tmp;
+					}
+                }	
+
                 if (trigger){
                     var result = false;
                     for (var x=0; x < trigger.length; x++){
